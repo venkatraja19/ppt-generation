@@ -2,6 +2,7 @@ import json
 import logging
 import os
 import re
+import traceback
 
 from dotenv import load_dotenv
 load_dotenv()
@@ -19,7 +20,10 @@ app = Flask(__name__)
 CORS(app)
 
 _api_key = os.environ.get("GROQ_API_KEY", "").strip()
-client = Groq(api_key=_api_key) if _api_key else None
+if not _api_key:
+    raise RuntimeError("GROQ_API_KEY is missing. Add it to your .env file.")
+
+client = Groq(api_key=_api_key)
 
 SYSTEM_PROMPT = """You are an advanced AI presentation generator.
 Your job is to create a fully structured, professional PowerPoint based on the user's full prompt.
@@ -147,8 +151,6 @@ def preview():
         return jsonify({"error": "'num_slides' must be between 3 and 80"}), 400
 
     try:
-        if not client:
-            return jsonify({"error": "GROQ_API_KEY is not configured on the server."}), 503
         response = client.chat.completions.create(
             model="llama-3.3-70b-versatile",
             messages=[
@@ -164,6 +166,7 @@ def preview():
             return jsonify({"error": "AI returned unexpected structure"}), 500
         return jsonify({"slides": slides, "count": len(slides)})
     except ValueError as e:
+        logger.exception("Preview JSON error")
         return jsonify({"error": f"JSON parse error: {str(e)}"}), 500
     except Exception as e:
         logger.exception("Preview error")
@@ -189,8 +192,6 @@ def generate():
         return jsonify({"error": "'num_slides' must be between 3 and 80"}), 400
 
     try:
-        if not client:
-            return jsonify({"error": "GROQ_API_KEY is not configured on the server."}), 503
         response = client.chat.completions.create(
             model="llama-3.3-70b-versatile",
             messages=[
@@ -227,8 +228,10 @@ def generate():
         )
 
     except ValueError as e:
+        logger.exception("Generate JSON error")
         return jsonify({"error": f"JSON parse error: {str(e)}"}), 500
     except json.JSONDecodeError:
+        logger.exception("Generate JSON decode error")
         return jsonify({"error": "AI returned invalid JSON. Please try again."}), 500
     except Exception as e:
         logger.exception("Generate error")
@@ -238,4 +241,4 @@ def generate():
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
     debug = os.environ.get("FLASK_DEBUG", "false").lower() == "true"
-    app.run(host="0.0.0.0", port=port, debug=debug)
+    app.run(host="127.0.0.1", port=port, debug=debug)
