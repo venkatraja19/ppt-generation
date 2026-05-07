@@ -37,7 +37,8 @@ export default function AIPPTGenerator() {
       setHasGenerated(true);
     } catch (err) {
       console.error(err);
-      setError("Failed to generate PPT. Is the Flask backend running on port 5000?");
+      const msg = err?.response?.data?.error || err?.message || "Unknown error";
+      setError(`Failed to generate PPT: ${msg}`);
     } finally {
       setLoading(false);
     }
