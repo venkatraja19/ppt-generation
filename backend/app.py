@@ -19,10 +19,7 @@ app = Flask(__name__)
 CORS(app)
 
 _api_key = os.environ.get("GROQ_API_KEY", "").strip()
-if not _api_key:
-    raise RuntimeError("GROQ_API_KEY is missing. Add it to your .env file.")
-
-client = Groq(api_key=_api_key)
+client = Groq(api_key=_api_key) if _api_key else None
 
 SYSTEM_PROMPT = """You are an advanced AI presentation generator.
 Your job is to create a fully structured, professional PowerPoint based on the user's full prompt.
@@ -150,6 +147,8 @@ def preview():
         return jsonify({"error": "'num_slides' must be between 3 and 80"}), 400
 
     try:
+        if not client:
+            return jsonify({"error": "GROQ_API_KEY is not configured on the server."}), 503
         response = client.chat.completions.create(
             model="llama-3.3-70b-versatile",
             messages=[
@@ -190,6 +189,8 @@ def generate():
         return jsonify({"error": "'num_slides' must be between 3 and 80"}), 400
 
     try:
+        if not client:
+            return jsonify({"error": "GROQ_API_KEY is not configured on the server."}), 503
         response = client.chat.completions.create(
             model="llama-3.3-70b-versatile",
             messages=[

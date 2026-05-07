@@ -3,3 +3,5 @@ flask-cors
 groq
 python-pptx
 python-dotenv
+gunicorn
+lxml
