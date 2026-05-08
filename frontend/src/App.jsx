@@ -38,7 +38,19 @@ export default function AIPPTGenerator() {
       setHasGenerated(true);
     } catch (err) {
       console.error(err);
-      const msg = err?.response?.data?.error || err?.message || "Unknown error";
+      // When responseType=blob, error response needs to be read as text
+      let msg = "Unknown error";
+      try {
+        if (err?.response?.data instanceof Blob) {
+          const text = await err.response.data.text();
+          const parsed = JSON.parse(text);
+          msg = parsed.error || text;
+        } else {
+          msg = err?.response?.data?.error || err?.message || "Unknown error";
+        }
+      } catch (_) {
+        msg = err?.message || "Unknown error";
+      }
       setError(`Failed to generate PPT: ${msg}`);
     } finally {
       setLoading(false);

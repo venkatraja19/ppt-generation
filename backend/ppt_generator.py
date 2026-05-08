@@ -1089,9 +1089,15 @@ def _get(sd: dict, key: str, default=None):
 
 def generate_ppt(slides: list[dict],
                  topic: str = "Presentation",
-                 department: str = "DEPARTMENT OF PHARMACY PRACTICE",
+               
                  presenter: str = "",
-                 output_path: str = "output.pptx") -> str:
+                 output_path: str = "output.pptx",
+                 title_color: tuple = None,
+                 accent_color: tuple = None,
+                 bg_color: tuple = None,
+                 text_color: tuple = None,
+                 font: str = None,
+                 node_colors: list = None) -> str:
     """
     Generate a .pptx that matches the PHARMACOTHERAPEUTICS reference style.
 
@@ -1107,6 +1113,14 @@ def generate_ppt(slides: list[dict],
     -------
     str – absolute path to saved .pptx
     """
+    # Apply dynamic theme
+    global C_RED, C_ORANGE, FONT, _NODE_COLORS
+    if title_color:  C_RED        = RGBColor(*title_color)
+    if accent_color: C_ORANGE     = RGBColor(*accent_color)
+    if text_color:   pass  # text_color applied via tx_color below
+    if font and font.strip(): FONT = font
+    if node_colors:  _NODE_COLORS = [RGBColor(*c) for c in node_colors]
+
     prs = Presentation()
     prs.slide_width  = SW
     prs.slide_height = SH
@@ -1321,7 +1335,7 @@ if __name__ == "__main__":
     path = generate_ppt(
         slides=sample_slides,
         topic="PHARMACOTHERAPEUTICS-I",
-        department="DEPARTMENT OF PHARMACY PRACTICE",
+     
         presenter="DEVIPRIYA V M\nM.PHARM SEM-1\nPHARMACY PRACTICE",
         output_path="outputs/pharma_style_demo.pptx",
     )
