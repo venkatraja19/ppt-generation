@@ -1090,6 +1090,7 @@ def _get(sd: dict, key: str, default=None):
 def generate_ppt(slides: list[dict],
                  topic: str = "Presentation",
                
+                 department: str = "",
                  presenter: str = "",
                  output_path: str = "output.pptx",
                  title_color: tuple = None,
